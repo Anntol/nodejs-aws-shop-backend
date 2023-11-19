@@ -8,6 +8,14 @@ export class ProductServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const api = new apigw.RestApi(this, "ProductApi", {
+      defaultCorsPreflightOptions: {
+        allowHeaders: ["*"],
+        allowOrigins: ["*"],
+        allowMethods: ["*"]
+      }
+    });
+
     const lambdaProps: Partial<NodejsFunctionProps> = {
       runtime: lambda.Runtime.NODEJS_18_X
     }
@@ -18,17 +26,18 @@ export class ProductServiceStack extends cdk.Stack {
       entry: "src/handlers/getProductsList.ts"
     });
 
-    const api = new apigw.RestApi(this, "ProductApi", {
-      defaultCorsPreflightOptions: {
-        allowHeaders: ["*"],
-        allowOrigins: ["*"],
-        allowMethods: ["*"]
-      }
+    const getProductsById = new NodejsFunction (this, "GetProductsByIdLambda", {
+      ...lambdaProps,
+      functionName: "getProductsById",
+      entry: "src/handlers/getProductsById.ts"
     });
 
-    const productsResource = api.root.addResource('products');
+    const productsResource = api.root.addResource("products");
     productsResource.addMethod("GET", new apigw.LambdaIntegration(getProductsList));
 
-    new cdk.CfnOutput(this, 'apiUrl', {value: api.url});
+    const productResource = productsResource.addResource("{productId}");
+    productResource.addMethod("GET", new apigw.LambdaIntegration(getProductsById));
+
+    new cdk.CfnOutput(this, "apiUrl", {value: api.url});
   }
 }
