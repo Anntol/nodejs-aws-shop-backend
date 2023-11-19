@@ -1,10 +1,16 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda';
+import { StatusCodes } from 'http-status-codes';
+import { getResponse } from '../utils/getResponse';
+import products from "../data/products.json";
 
 export const handler: Handler = async (event: APIGatewayEvent) => {
-  console.log("request:", JSON.stringify(event, undefined, 2));
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "text/plain" },
-    body: `Hello from getProductList! You've hit ${event.path}\n`
-  };
+  try {
+    return getResponse(StatusCodes.OK, products);
+  }
+  catch (e) {
+    console.error(e);
+    return getResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
+        message: "Internal Server Error"
+    })
+  }
 }
