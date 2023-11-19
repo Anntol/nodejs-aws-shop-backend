@@ -1,0 +1,11 @@
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+
+const bucketName = "anntol-cdk23";
+
+export class ProductServiceStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+  }
+}
