@@ -12,10 +12,10 @@ export class ProductServiceStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X
     }
 
-    const getProductList = new NodejsFunction (this, "GetProductListLambda", {
+    const getProductsList = new NodejsFunction (this, "GetProductsListLambda", {
       ...lambdaProps,
-      functionName: "getProductList",
-      entry: "src/handlers/getProductList.ts"
+      functionName: "getProductsList",
+      entry: "src/handlers/getProductsList.ts"
     });
 
     const api = new apigw.RestApi(this, "ProductApi", {
@@ -27,7 +27,7 @@ export class ProductServiceStack extends cdk.Stack {
     });
 
     const productsResource = api.root.addResource('products');
-    productsResource.addMethod("GET", new apigw.LambdaIntegration(getProductList));
+    productsResource.addMethod("GET", new apigw.LambdaIntegration(getProductsList));
 
     new cdk.CfnOutput(this, 'apiUrl', {value: api.url});
   }
