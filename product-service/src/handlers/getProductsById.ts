@@ -9,18 +9,18 @@ export const handler: Handler = async (event: APIGatewayEvent) => {
 
     if (!productId) {
       return getResponse(StatusCodes.BAD_REQUEST, {
-        message: "productId is invalid"
+        message: "ProductId is invalid"
       });
     }
 
     const product = products.filter((item) => item.id === productId);
-    if (!product) {
-      return getResponse(StatusCodes.NOT_FOUND, {
-        message: "product not found"
-      });
-    }
-
-    return getResponse(StatusCodes.OK, product);
+    if (Array.isArray(product) && product.length) {
+      return getResponse(StatusCodes.OK, product);
+    };
+    
+    return getResponse(StatusCodes.NOT_FOUND, {
+      message: "Product not found"
+    });
   }
   catch (e) {
     console.error(e);
