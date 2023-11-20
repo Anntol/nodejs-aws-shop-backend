@@ -1,0 +1,20 @@
+[
+    {
+        "id": "cd9b7f24-4980-44f7-af21-584f0b196bca",
+        "title": "croissant",
+        "description": "A croissant is a laminated, yeast-leavened bakery product that contains dough/roll-in fat layers to create a flaky, crispy texture.",
+        "price": 7.50
+    },
+    {
+        "id": "0988967f-4327-4fa1-a684-65089fb55490",
+        "title": "burger",
+        "description": "A burger is a patty of ground beef grilled and placed between two halves of a bun.",
+        "price": 12.00
+    },
+    {
+        "id": "2bee0f07-6283-4464-bbdc-614c844efda1",
+        "title": "hotdog",
+        "description": "A hot dog is a food consisting of a steamed sausage served in the slit of a partially sliced bun.",
+        "price": 5.00
+    }
+]
