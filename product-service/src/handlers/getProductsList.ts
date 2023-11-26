@@ -5,6 +5,7 @@ import { getProductsList } from '../utils/dynamoDb/dbOperations';
 
 export const handler: Handler = async (event: APIGatewayEvent) => {
   try {
+    console.log(event);
     const products = await getProductsList();
     return getResponse(StatusCodes.OK, products);
   }

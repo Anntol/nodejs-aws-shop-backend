@@ -5,6 +5,7 @@ import { getProductsById } from '../utils/dynamoDb/dbOperations';
 
 export const handler: Handler = async (event: APIGatewayEvent) => {
   try {
+    console.log(event);
     const productId = event.pathParameters!.productId;
 
     if (!productId) {

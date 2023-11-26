@@ -7,6 +7,8 @@ import { createProduct } from "../utils/dynamoDb/dbOperations";
 
 export const handler: Handler = async (event: APIGatewayEvent) => {
     try {
+        console.log(event);
+        
         const body = event.body;
         if (!body) {
             return getResponse(StatusCodes.BAD_REQUEST, { 
