@@ -16,5 +16,17 @@
         "title": "hotdog",
         "description": "A hot dog is a food consisting of a steamed sausage served in the slit of a partially sliced bun.",
         "price": 5.00
+    },
+    {
+        "id": "10e4ded6-c3f1-4244-9bea-7b146fa59864",
+        "title": "polish pretzel",
+        "description": "A polish pretzel is a flaky and soft dough, sank in a sweet syrup, flavoured with pure vanilla essence. ",
+        "price": 3.00
+    },
+    {
+        "id": "de1eda76-a07b-4f25-b26e-c19d001436f8",
+        "title": "belgian waffle",
+        "description": "Belgian waffle is a variety of waffle with a light batter and large squares",
+        "price": 3.50
     }
 ]
