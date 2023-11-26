@@ -1,10 +1,12 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda';
 import { StatusCodes } from 'http-status-codes';
 import { getResponse } from '../utils/getResponse';
-import products from "../data/products.json";
+import { getProductsList } from '../utils/dynamoDb/dbOperations';
 
 export const handler: Handler = async (event: APIGatewayEvent) => {
   try {
+    console.log(event);
+    const products = await getProductsList();
     return getResponse(StatusCodes.OK, products);
   }
   catch (e) {

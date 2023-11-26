@@ -1,10 +1,11 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda';
 import { StatusCodes } from 'http-status-codes';
 import { getResponse } from '../utils/getResponse';
-import products from "../data/products.json";
+import { getProductsById } from '../utils/dynamoDb/dbOperations';
 
 export const handler: Handler = async (event: APIGatewayEvent) => {
   try {
+    console.log(event);
     const productId = event.pathParameters!.productId;
 
     if (!productId) {
@@ -13,14 +14,13 @@ export const handler: Handler = async (event: APIGatewayEvent) => {
       });
     }
 
-    const product = products.filter((item) => item.id === productId);
-    if (Array.isArray(product) && product.length) {
-      return getResponse(StatusCodes.OK, product);
-    };
-    
-    return getResponse(StatusCodes.NOT_FOUND, {
-      message: "Product not found"
-    });
+    const product = await getProductsById(productId);
+    if (!product) {
+      return getResponse(StatusCodes.NOT_FOUND, {
+        message: "Product not found"
+      });
+    }
+    return getResponse(StatusCodes.OK, product);
   }
   catch (e) {
     console.error(e);
