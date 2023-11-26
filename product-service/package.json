@@ -9,7 +9,7 @@
     "cdk:dpl": "npm run build && cdk deploy",
     "cdk:dst": "cdk destroy",
     "cdk:wch": "cdk watch",
-    "db:fillDynamo": "ts-node src/utils/fillDynamoDbTables.ts"
+    "db:fillDynamo": "ts-node src/utils/dynamoDb/fillTables.ts"
   },
   "devDependencies": {
     "@types/jest": "^29.5.8",
@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.454.0",
+    "@aws-sdk/lib-dynamodb": "^3.454.0",
     "@types/aws-lambda": "^8.10.126",
     "aws-cdk-lib": "2.106.1",
     "constructs": "^10.0.0",

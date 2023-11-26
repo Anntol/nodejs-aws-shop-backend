@@ -2,14 +2,14 @@ import {
     DynamoDBClient,
     BatchWriteItemCommand,
   } from '@aws-sdk/client-dynamodb';
-  import products from "../data/products.json";
-  import stocks from "../data/stocks.json";
+  import products from "../../data/products.json";
+  import stocks from "../../data/stocks.json";
   
   interface IDynamoDBItem {
     [key: string]: { S: string } | { N: string };
   }
   
-  const dbClient = new DynamoDBClient({});
+  const dbClient = new DynamoDBClient();
   
   const fillTable = async <T extends Record<string, any>>(
     dbClient: DynamoDBClient,
