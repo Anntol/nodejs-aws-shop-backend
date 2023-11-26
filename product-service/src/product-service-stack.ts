@@ -40,8 +40,17 @@ export class ProductServiceStack extends cdk.Stack {
     productsTable.grantReadData(getProductsById);
     stocksTable.grantReadData(getProductsById);
 
+    const createProduct = new NodejsFunction (this, "CreateProductLambda", {
+      ...lambdaProps,
+      functionName: "createProduct",
+      entry: "src/handlers/createProduct.ts"
+    });
+    productsTable.grantWriteData(createProduct);
+    stocksTable.grantWriteData(createProduct);
+
     const productsResource = api.root.addResource("products");
     productsResource.addMethod("GET", new apigw.LambdaIntegration(getProductsList));
+    productsResource.addMethod("POST", new apigw.LambdaIntegration(createProduct));
 
     const productResource = productsResource.addResource("{productId}");
     productResource.addMethod("GET", new apigw.LambdaIntegration(getProductsById));
