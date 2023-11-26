@@ -21,7 +21,11 @@ export class ProductServiceStack extends cdk.Stack {
     });
 
     const lambdaProps: Partial<NodejsFunctionProps> = {
-      runtime: lambda.Runtime.NODEJS_18_X
+      runtime: lambda.Runtime.NODEJS_18_X,
+      environment: {
+        PRODUCTS_TABLE: productsTable.tableName,
+        STOCKS_TABLE: stocksTable.tableName,
+      },
     }
 
     const getProductsList = new NodejsFunction (this, "GetProductsListLambda", {
