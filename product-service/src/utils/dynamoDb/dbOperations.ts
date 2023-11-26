@@ -1,11 +1,15 @@
 import { DynamoDBClient} from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, ScanCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, GetCommandOutput, ScanCommand, ScanCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { IProduct } from '../interfaces/IProduct';
 import { IStock } from '../interfaces/IStock';
 import { IAvailableProduct } from '../interfaces/IAvailableProduct';
 
 interface IDBScanOutput<T> extends Omit<ScanCommandOutput, 'Items'> {
     Items?: T[];
+}
+
+interface IDBGetOutput<T> extends Omit<GetCommandOutput, 'Item'> {
+    Item?: T;
 }
 
 const ProductsTable = "Products";
@@ -40,6 +44,28 @@ export const getProductsList = async (): Promise<IAvailableProduct[]> => {
     return availableProducts;
   };
   
+  export const getProductsById = async (id: string): Promise<IAvailableProduct | null> => {
+    const { Item: productItem }  = (await dbDocClient.send(
+        new GetCommand({
+            TableName: ProductsTable,
+            Key: { id }
+        })
+    )) as IDBGetOutput<IProduct>;
+    if (!productItem) return null;
+
+    const { Item: stockItem } = (await dbDocClient.send(
+        new GetCommand({
+            TableName: StocksTable,
+            Key:  { 'product_id': id }
+        })
+    )) as IDBGetOutput<IStock>;
+    
+    return {
+        ...productItem,
+        count: stockItem?.count ?? 0
+    };
+
+  }
 
   dbDocClient.destroy();
   dbClient.destroy();

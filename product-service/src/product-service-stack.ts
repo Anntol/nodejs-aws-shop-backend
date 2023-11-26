@@ -31,12 +31,14 @@ export class ProductServiceStack extends cdk.Stack {
     });
     productsTable.grantReadData(getProductsList);
     stocksTable.grantReadData(getProductsList);
-    
+
     const getProductsById = new NodejsFunction (this, "GetProductsByIdLambda", {
       ...lambdaProps,
       functionName: "getProductsById",
       entry: "src/handlers/getProductsById.ts"
     });
+    productsTable.grantReadData(getProductsById);
+    stocksTable.grantReadData(getProductsById);
 
     const productsResource = api.root.addResource("products");
     productsResource.addMethod("GET", new apigw.LambdaIntegration(getProductsList));
