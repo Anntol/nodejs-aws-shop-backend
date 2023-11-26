@@ -14,11 +14,19 @@ export const handler: Handler = async (event: APIGatewayEvent) => {
             });
         }
 
-        const product: IAvailableProduct = JSON.parse(body);
-        if (!product.id) {
-            product.id = randomUUID();
+        let product: IAvailableProduct;
+        try {
+            product = JSON.parse(body);
+            if (!product.id) {
+                product.id = randomUUID();
+            }
+        } catch (e) {
+            console.error(e);
+            return getResponse(StatusCodes.BAD_REQUEST, { 
+                message: "Product data is invalid"
+            });
         }
-
+        
         const newProduct = await createProduct(product);
         return getResponse(StatusCodes.CREATED, newProduct);
     }
