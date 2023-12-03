@@ -47,6 +47,7 @@ export class ImportServiceStack extends cdk.Stack {
       entry: "src/handlers/importFileParser.ts"
     });
     bucket.grantReadWrite(importFileParser);
+    bucket.grantDelete(importFileParser);
     bucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
       new s3notifications.LambdaDestination(importFileParser),

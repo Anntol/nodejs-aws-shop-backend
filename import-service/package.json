@@ -24,6 +24,7 @@
     "@types/aws-lambda": "8.10.130",
     "aws-cdk-lib": "2.106.1",
     "constructs": "10.0.0",
+    "csv-parser": "3.0.0",
     "esbuild": "0.19.8",
     "http-status-codes": "2.3.0",
     "source-map-support": "0.5.21"
