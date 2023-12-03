@@ -56,7 +56,7 @@ export class ImportServiceStack extends cdk.Stack {
       }
     );
 
-    const api = new apigw.RestApi(this, "ProductApi", {
+    const api = new apigw.RestApi(this, "ImportApi", {
       defaultCorsPreflightOptions: {
         allowHeaders: ["*"],
         allowOrigins: ["*"],
