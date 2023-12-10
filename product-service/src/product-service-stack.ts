@@ -1,9 +1,11 @@
 import * as cdk from "aws-cdk-lib";
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { Construct } from "constructs";
 import { TableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { NodejsFunction, NodejsFunctionProps } from "aws-cdk-lib/aws-lambda-nodejs";
-import { Construct } from "constructs";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 export class ProductServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -51,6 +53,27 @@ export class ProductServiceStack extends cdk.Stack {
     });
     productsTable.grantWriteData(createProduct);
     stocksTable.grantWriteData(createProduct);
+
+    const catalogItemsQueue = new sqs.Queue(this, 'CatalogItemsQueue',
+      {
+        queueName: 'catalog-products-queue.fifo',
+        fifo: true
+      }
+    );
+
+    const catalogBatchProcess = new NodejsFunction(this, 'CatalogBatchProcessLambda',
+      {
+        ...lambdaProps,
+        functionName: 'catalogBatchProcess',
+        entry: 'src/handlers/catalogBatchProcess.ts',
+      }
+    );
+
+    catalogBatchProcess.addEventSource(
+      new SqsEventSource(catalogItemsQueue, {
+        batchSize: 5,
+      })
+    );
 
     const productsResource = api.root.addResource("products");
     productsResource.addMethod("GET", new apigw.LambdaIntegration(getProductsList));
