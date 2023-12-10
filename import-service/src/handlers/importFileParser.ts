@@ -30,6 +30,7 @@ export const handler: Handler = async (event: S3Event) => {
 
         await readStream(
             rawStream,
+            process.env.SQS_URL,
             bucket,
             fileName,
             fileName.replace('uploaded', 'parsed')
