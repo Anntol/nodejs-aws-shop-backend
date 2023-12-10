@@ -55,11 +55,19 @@ export class ProductServiceStack extends cdk.Stack {
     productsTable.grantWriteData(createProduct);
     stocksTable.grantWriteData(createProduct);
 
-    const catalogItemsQueue = new sqs.Queue(this, 'CatalogItemsQueue',
-      {
+    const catalogDeadLetterQueue = new sqs.Queue(this, "CatalogDeadLetterQueue", {
+      queueName: "catalog-dead-letter-queue.fifo",
+      retentionPeriod: cdk.Duration.days(1),
+      fifo: true
+    });
+    const catalogItemsQueue = new sqs.Queue(this, 'CatalogItemsQueue', {
         queueName: 'catalog-products-queue.fifo',
-        fifo: true
-      }
+        fifo: true,
+        deadLetterQueue: {
+          maxReceiveCount: 2,
+          queue: catalogDeadLetterQueue,
+        }
+      },
     );
 
     const createProductTopic = new sns.Topic(this, 'CreateProductTopic', {
