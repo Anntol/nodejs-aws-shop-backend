@@ -1,6 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as sns from 'aws-cdk-lib/aws-sns';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from "constructs";
 import { TableV2 } from 'aws-cdk-lib/aws-dynamodb';
@@ -61,12 +62,24 @@ export class ProductServiceStack extends cdk.Stack {
       }
     );
 
+    const createProductTopic = new sns.Topic(this, 'CreateProductTopic', {
+      topicName: 'create-product-topic',
+    });
+    new sns.Subscription(this, 'CreateProductEmailSubscription', {
+      endpoint: 'test@email.com',
+      protocol: sns.SubscriptionProtocol.EMAIL,
+      topic: createProductTopic
+    });
+
     const catalogBatchProcess = new NodejsFunction(this, 'CatalogBatchProcessLambda',
       {
         ...lambdaProps,
         functionName: 'catalogBatchProcess',
         entry: 'src/handlers/catalogBatchProcess.ts',
-      }
+        environment: {
+          SNS_TOPIC: createProductTopic.topicArn
+        }
+      },
     );
 
     catalogBatchProcess.addEventSource(
@@ -74,6 +87,9 @@ export class ProductServiceStack extends cdk.Stack {
         batchSize: 5,
       })
     );
+    createProductTopic.grantPublish(catalogBatchProcess);
+    productsTable.grantWriteData(catalogBatchProcess);
+    stocksTable.grantWriteData(catalogBatchProcess);
 
     const productsResource = api.root.addResource("products");
     productsResource.addMethod("GET", new apigw.LambdaIntegration(getProductsList));

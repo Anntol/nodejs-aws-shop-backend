@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { IAvailableProduct } from "../utils/interfaces/IAvailableProduct";
 import { randomUUID } from "node:crypto";
 import { createProduct } from "../utils/dynamoDb/dbOperations";
+import { sendToSNS } from "../utils/sendToSns";
 
 export const handler = async (event: SQSEvent) => {
     try {
@@ -25,6 +26,17 @@ export const handler = async (event: SQSEvent) => {
             }
             const newProduct = await createProduct(product);
             console.log('created newProduct: ', newProduct.id);
+
+            if (process.env.SNS_TOPIC) {
+                const snsResult = await sendToSNS(
+                    process.env.SNS_TOPIC,
+                    JSON.stringify(newProduct),
+                    'Products added to catalog'
+                );
+                console.log('snsResult', snsResult);
+            } else {
+                console.error ('SNS_TOPIC not defined!');
+            }
         }
         return true;
     }
@@ -34,5 +46,4 @@ export const handler = async (event: SQSEvent) => {
             message: "Internal Server Error"
         })
     }
-
 }
