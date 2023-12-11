@@ -26,12 +26,7 @@ export const getS3SignedUrl = async (objectKey: string) => {
     }
 };
 
-interface IMoveParams {
-    from: string,
-    to: string
-};
-
-export const moveS3Object = async ({from, to}:IMoveParams) => {
+export const moveS3Object = async (from: string, to: string) => {
     try {
       const copyCommand = new CopyObjectCommand({
         Bucket: bucketName,
@@ -42,7 +37,7 @@ export const moveS3Object = async ({from, to}:IMoveParams) => {
         Bucket: bucketName,
         Key: from,
       });
-  
+
       await client.send(copyCommand);
       console.log(`File copied from ${from} to ${to} in bucket ${bucketName}`);
       await client.send(deleteCommand);

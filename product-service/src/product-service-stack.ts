@@ -1,9 +1,12 @@
 import * as cdk from "aws-cdk-lib";
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { Construct } from "constructs";
 import { TableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { NodejsFunction, NodejsFunctionProps } from "aws-cdk-lib/aws-lambda-nodejs";
-import { Construct } from "constructs";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 export class ProductServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -51,6 +54,48 @@ export class ProductServiceStack extends cdk.Stack {
     });
     productsTable.grantWriteData(createProduct);
     stocksTable.grantWriteData(createProduct);
+
+    const catalogDeadLetterQueue = new sqs.Queue(this, "CatalogDeadLetterQueue", {
+      queueName: "catalog-dead-letter-queue",
+      retentionPeriod: cdk.Duration.days(1)
+    });
+    const catalogItemsQueue = new sqs.Queue(this, 'CatalogItemsQueue', {
+        queueName: 'catalog-products-queue',
+        deadLetterQueue: {
+          maxReceiveCount: 2,
+          queue: catalogDeadLetterQueue,
+        }
+      },
+    );
+
+    const createProductTopic = new sns.Topic(this, 'CreateProductTopic', {
+      topicName: 'create-product-topic',
+    });
+    new sns.Subscription(this, 'CreateProductEmailSubscription', {
+      endpoint: 'test@email.com',
+      protocol: sns.SubscriptionProtocol.EMAIL,
+      topic: createProductTopic
+    });
+
+    const catalogBatchProcess = new NodejsFunction(this, 'CatalogBatchProcessLambda',
+      {
+        ...lambdaProps,
+        functionName: 'catalogBatchProcess',
+        entry: 'src/handlers/catalogBatchProcess.ts',
+        environment: {
+          SNS_TOPIC: createProductTopic.topicArn
+        }
+      },
+    );
+
+    catalogBatchProcess.addEventSource(
+      new SqsEventSource(catalogItemsQueue, {
+        batchSize: 5,
+      })
+    );
+    createProductTopic.grantPublish(catalogBatchProcess);
+    productsTable.grantWriteData(catalogBatchProcess);
+    stocksTable.grantWriteData(catalogBatchProcess);
 
     const productsResource = api.root.addResource("products");
     productsResource.addMethod("GET", new apigw.LambdaIntegration(getProductsList));
