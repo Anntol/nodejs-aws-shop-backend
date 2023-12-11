@@ -2,7 +2,7 @@ import { Handler, S3Event } from 'aws-lambda';
 import { StatusCodes } from 'http-status-codes';
 import { getResponse } from '../utils/getResponse';
 import { readStream } from '../utils/readStream';
-import { getS3ReadStream } from '../utils/s3Operations';
+import { getS3ReadStream, moveS3Object } from '../utils/s3Operations';
 
 export const handler: Handler = async (event: S3Event) => {
     try {
@@ -15,26 +15,26 @@ export const handler: Handler = async (event: S3Event) => {
         }
 
         const bucketS3 = event.Records[0].s3;
-        const bucket = bucketS3.bucket.name;
         const fileName = decodeURIComponent(
             bucketS3.object.key.replace(/\+/g, ' ')
         );
 
         const rawStream = await getS3ReadStream(fileName);
-
         if (!rawStream) {
             return getResponse(StatusCodes.BAD_REQUEST, {
                 message: "Unable to read stream for " + fileName
             });
         }
 
-        await readStream(
-            rawStream,
-            process.env.SQS_URL,
-            bucket,
-            fileName,
-            fileName.replace('uploaded', 'parsed')
-        );
+        const sqsUrl = process.env.SQS_URL;
+        if (sqsUrl) {
+            await readStream(rawStream, sqsUrl);
+        } else {
+            console.error ('sqsUrl not defined!');
+        }
+
+        const destName = fileName.replace('uploaded', 'parsed');
+        await moveS3Object(fileName, destName);
 
         return getResponse(StatusCodes.OK, fileName);
     }

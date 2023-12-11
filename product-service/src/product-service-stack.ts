@@ -56,13 +56,11 @@ export class ProductServiceStack extends cdk.Stack {
     stocksTable.grantWriteData(createProduct);
 
     const catalogDeadLetterQueue = new sqs.Queue(this, "CatalogDeadLetterQueue", {
-      queueName: "catalog-dead-letter-queue.fifo",
-      retentionPeriod: cdk.Duration.days(1),
-      fifo: true
+      queueName: "catalog-dead-letter-queue",
+      retentionPeriod: cdk.Duration.days(1)
     });
     const catalogItemsQueue = new sqs.Queue(this, 'CatalogItemsQueue', {
-        queueName: 'catalog-products-queue.fifo',
-        fifo: true,
+        queueName: 'catalog-products-queue',
         deadLetterQueue: {
           maxReceiveCount: 2,
           queue: catalogDeadLetterQueue,

@@ -1,4 +1,5 @@
-import { SQSClient, SendMessageBatchCommand } from "@aws-sdk/client-sqs";
+import { SQSClient, SendMessageBatchCommand, SendMessageCommand } from "@aws-sdk/client-sqs";
+import { randomUUID } from "crypto";
 import { StatusCodes } from 'http-status-codes';
 
 const sqsClient = new SQSClient();
@@ -7,31 +8,28 @@ interface IRow {
   [key: string]: string | number | boolean;
 }
 
-export const sendMessageBatch = async (
+export const sendMessage = async (
   queueUrl: string,
-  items: IRow[],
-): Promise<boolean> => {
-  console.log(
-    `Sending batch message to queue ${queueUrl}`,
-  );
-  const queueResult = await sqsClient.send(
-    new SendMessageBatchCommand({
+  item: IRow,
+): Promise<void> => {
+  try {
+    console.log(
+      `Sending message to queue ${queueUrl}. Item: ${item}`,
+    );
+    const sendMessageCommand = new SendMessageCommand({
       QueueUrl: queueUrl,
-      Entries: items.map((item, index) => {
-        return {
-          Id: index.toString(),
-          MessageBody: JSON.stringify(item),
-        };
-      }),
-    }),
-  );
+      MessageBody: JSON.stringify(item),
+    });
 
-  const code = queueResult.$metadata.httpStatusCode;
-  if (code !== StatusCodes.OK) {
-    console.error(queueResult.$metadata.httpStatusCode);
-    return false;
-  } else {
-    console.log(`Message sent with status code ${code}`);
-    return true;
-  };
+    sqsClient.send(sendMessageCommand)
+      .then(data => {
+        console.log(`Message sent with status code ${data.$metadata.httpStatusCode}`);
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  } catch (e: unknown) {
+    console.error('Error sending Message: ', e);
+    throw e;
+  }
 };

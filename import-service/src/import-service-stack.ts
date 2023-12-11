@@ -14,7 +14,7 @@ export class ImportServiceStack extends cdk.Stack {
     const catalogProductsQueue = sqs.Queue.fromQueueArn(
       this,
       "CatalogProductsQueue",
-      "arn:aws:sqs:eu-west-1:664326670415:catalog-products-queue.fifo"
+      "arn:aws:sqs:eu-west-1:664326670415:catalog-products-queue"
     );
 
     const bucket = new s3.Bucket(this, 'ImportBucket', {
