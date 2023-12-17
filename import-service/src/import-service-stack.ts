@@ -77,6 +77,16 @@ export class ImportServiceStack extends cdk.Stack {
       }
     });
 
+    api.addGatewayResponse("GatewayResponse4XX", {
+      type: apigw.ResponseType.DEFAULT_4XX,
+      responseHeaders: {
+        "Access-Control-Allow-Origin": "'*'",
+        "Access-Control-Allow-Headers":
+          "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+        "Access-Control-Allow-Methods": "'OPTIONS,GET,PUT'"
+      },
+    });
+
     const basicAuth = lambda.Function.fromFunctionArn(this, 'basicAuthLambda',
       "arn:aws:lambda:eu-west-1:664326670415:function:basicAuthorizer");
 
