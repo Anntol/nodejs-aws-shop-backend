@@ -6,7 +6,7 @@ import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as s3notifications from 'aws-cdk-lib/aws-s3-notifications';
 import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
-import { handler } from './handlers/importFileParser';
+import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 
 export class ImportServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -72,23 +72,41 @@ export class ImportServiceStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowHeaders: ["*"],
         allowOrigins: ["*"],
-        allowMethods: ["*"]
+        allowMethods: ["*"],
+        allowCredentials: true
       }
     });
 
     const basicAuth = lambda.Function.fromFunctionArn(this, 'basicAuthLambda',
       "arn:aws:lambda:eu-west-1:664326670415:function:basicAuthorizer");
 
+    const assumedAuthRole = new Role(this, "basicAuthRole", {
+      assumedBy: new ServicePrincipal("apigateway.amazonaws.com"),
+    });
+    assumedAuthRole.addToPolicy(
+      new PolicyStatement({
+        actions: ["lambda:InvokeFunction"],
+        resources: [basicAuth.functionArn],
+      }),
+    );
+
+    const reqAuthorizer = new apigw.RequestAuthorizer(this, 'ImportRequestAuthorizer', {
+      handler: basicAuth,
+      identitySources: [apigw.IdentitySource.header('Authorization')],
+      assumeRole: assumedAuthRole
+    });
+
     const importResource = api.root.addResource('import');
     importResource.addMethod("GET", new apigw.LambdaIntegration(importProductsFile), 
       {
-        requestParameters: { "method.request.querystring.name": true },
+        requestParameters: { 
+          "method.request.querystring.name": true,
+          "method.request.header.Authorization": true
+        },
         authorizationType: apigw.AuthorizationType.CUSTOM,
-        authorizer: new apigw.TokenAuthorizer(this, "ImportBasicAuthorizer", 
-          {handler: basicAuth})
+        authorizer: reqAuthorizer
       });
 
     new cdk.CfnOutput(this, 'importApiUrl: ', {value: api.url});
-
   }
 }

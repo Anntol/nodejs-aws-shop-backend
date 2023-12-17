@@ -21,9 +21,11 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent, context: 
         const [, encodedCredentials] = token.split(' ');
         const buff = Buffer.from(encodedCredentials, 'base64');
         const [tokenName, tokenPwd] = buff.toString('utf-8').split(':');
-        console.log('username', tokenName);
+        console.log('Authorized as ', tokenName);
 
         if (!login || tokenName !== login || !password || tokenPwd !== password) {
+            console.log('Credentials are invalid!');
+
             callback(null, generatePolicy(encodedCredentials, denyEffect, event.methodArn));
             return;
         }
